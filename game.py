@@ -1,4 +1,5 @@
 import sys, pygame, math
+import physics
 from pygame.locals import *
 
 # Game constants
@@ -18,21 +19,29 @@ class CircularListEnumerator:
     def next(self):
         self.__index = (self.__index + 1) % len(self.__list)
         return self.__list[self.__index]
-
+        
 class Player(pygame.sprite.Sprite):
     
     speed = 1
 
-    def __init__(self, pos):
+    def __init__(self, position):
         pygame.sprite.Sprite.__init__(self, self.groups)
+        
         size = 48, 48
         self.image = pygame.Surface(size)
         self.image.fill(white)
         self.rect = self.image.get_rect()
-        self.rect.midbottom = pos
+        
+        self.position = position
+        self.__update_position()
+        
         self.crosshair = Crosshair(self)
         self.facing = 1
         self.active = False
+    
+    def __update_position(self):
+        self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
+        self.rect.midbottom = self.position
     
     def update(self):
         if not self.active:
@@ -52,7 +61,8 @@ class Player(pygame.sprite.Sprite):
     def __move(self, direction):
         if direction != 0:
             self.facing = direction
-            self.rect.move_ip(direction * self.speed, 0)
+            self.position.x += direction * self.speed
+            self.__update_position()
             self.crosshair.reset()
     
     def __aim(self, direction):
@@ -76,44 +86,39 @@ class Crosshair(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         
         self.player = player
-        self.angle = 0
+        self.position = pygame.math.Vector2()
+        self.__set_angle(0)
+    
+    def __set_angle(self, new_angle):
+        self.angle = new_angle
+        self.position.from_polar((self.radius, self.angle))
+        self.position += self.player.center
+        self.rect.center = self.position
     
     def reset(self):
-        self.angle = 90 * (self.player.facing - 1)
+        self.__set_angle(90 * (self.player.facing - 1))
     
     def move_vert(self, direction):
-        self.angle += direction * self.player.facing
+        self.__set_angle(self.angle + direction * self.player.facing)
         
-    def update(self):
-        x, y = polar_to_cartesian(self.radius, self.angle)
-        self.rect.center = (self.player.rect.centerx + x, self.player.rect.centery + y)
-        
-class Projectile(pygame.sprite.Sprite):
+class Projectile(physics.Particle):
     
     size = 8, 8
     speed = 10
     
     def __init__(self, crosshair):
-        pygame.sprite.Sprite.__init__(self, self.groups)
+        physics.Particle.__init__(self, crosshair.position, self.groups)
         
         self.image = pygame.Surface(self.size)
         self.rect = self.image.get_rect()
-        self.velocity = polar_to_cartesian(self.speed, crosshair.angle)
+        self.velocity.from_polar((self.speed, crosshair.angle))
         
         self.image.fill(white)
         self.rect.center = crosshair.rect.center
         
     def update(self):
-        self.rect.move_ip(self.velocity[0], self.velocity[1])
-
-def polar_to_cartesian(r, theta):
-    """theta in degrees
-
-    returns tuple; (float, float); (x,y)
-    """
-    x = r * math.cos(math.radians(theta))
-    y = r * math.sin(math.radians(theta))
-    return x, y
+        physics.Particle.update(self)
+        self.rect.center = self.position
     
 def main():
     pygame.init()
@@ -134,8 +139,8 @@ def main():
     clock = pygame.time.Clock()
     
     players_list = []
-    players_list.append(Player((SCREENRECT.centerx - 300, SCREENRECT.bottom)))
-    players_list.append(Player((SCREENRECT.centerx + 300, SCREENRECT.bottom)))
+    players_list.append(Player(pygame.math.Vector2(SCREENRECT.centerx - 300, SCREENRECT.bottom)))
+    players_list.append(Player(pygame.math.Vector2(SCREENRECT.centerx + 300, SCREENRECT.bottom)))
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
