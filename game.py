@@ -62,7 +62,6 @@ class Player(pygame.sprite.Sprite):
     def __shoot(self):
         Projectile(self.crosshair)
         
-        
 class Crosshair(pygame.sprite.Sprite):
     
     size = 8, 8
