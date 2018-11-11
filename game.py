@@ -6,6 +6,7 @@ from pygame.locals import *
 black = 0, 0, 0
 white = 255, 255, 255
 
+FRAMERATE = 60
 SCREENRECT = Rect(0, 0, 800, 600)
 END_TURN_EVENT = pygame.USEREVENT
 NEXT_TURN_EVENT = pygame.USEREVENT + 1
@@ -177,7 +178,7 @@ def main():
         pygame.display.update(dirty)
         
         # Cap the framerate
-        clock.tick(60)
+        clock.tick(FRAMERATE)
         
 
 #call the "main" function if running this script
