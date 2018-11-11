@@ -6,6 +6,18 @@ black = 0, 0, 0
 white = 255, 255, 255
 
 SCREENRECT = Rect(0, 0, 800, 600)
+END_TURN_EVENT = pygame.USEREVENT
+NEXT_TURN_EVENT = pygame.USEREVENT + 1
+
+class CircularListEnumerator:
+    
+    def __init__(self, list):
+        self.__list = list
+        self.__index = -1
+        
+    def next(self):
+        self.__index = (self.__index + 1) % len(self.__list)
+        return self.__list[self.__index]
 
 class Player(pygame.sprite.Sprite):
     
@@ -20,33 +32,34 @@ class Player(pygame.sprite.Sprite):
         self.rect.midbottom = pos
         self.crosshair = Crosshair(self)
         self.facing = 1
+        self.active = False
     
-    def step(self):
+    def update(self):
+        if not self.active:
+            return
         keystate = pygame.key.get_pressed()
-        hor = keystate[K_RIGHT] - keystate[K_LEFT]
-        vert = keystate[K_DOWN] - keystate[K_UP]
-        shoot = keystate[K_SPACE]
-        if hor != 0:
-            self._move_hor(hor)
-            return True
-        elif vert != 0:
-            self._move_vert(vert)
-            return True
-        elif shoot:
-            self._shoot()
-            return False
-        else:
-            return True
+        self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
+        self.__aim(keystate[K_DOWN] - keystate[K_UP])
+        if keystate[K_SPACE] != 0:
+            self.__shoot()
+            self.__end_turn()
     
-    def _move_hor(self, direction):
-        self.facing = direction
-        self.rect.move_ip(direction * self.speed, 0)
-        self.crosshair.reset()
+    def __end_turn(self):
+        self.active = False
+        end_turn_event = pygame.event.Event(END_TURN_EVENT, player = self)
+        pygame.event.post(end_turn_event)
     
-    def _move_vert(self, direction):
-        self.crosshair.move_vert(direction)
+    def __move(self, direction):
+        if direction != 0:
+            self.facing = direction
+            self.rect.move_ip(direction * self.speed, 0)
+            self.crosshair.reset()
     
-    def _shoot(self):
+    def __aim(self, direction):
+        if direction != 0:
+            self.crosshair.move_vert(direction)
+    
+    def __shoot(self):
         Projectile(self.crosshair)
         
         
@@ -106,6 +119,8 @@ def polar_to_cartesian(r, theta):
 def main():
     pygame.init()
     
+    game_ended = False
+    
     # Initialise sprite groups
     all = pygame.sprite.RenderUpdates()
     
@@ -119,21 +134,33 @@ def main():
     
     clock = pygame.time.Clock()
     
-    player1 = Player((SCREENRECT.centerx - 300, SCREENRECT.bottom))
-    player2 = Player((SCREENRECT.centerx + 300, SCREENRECT.bottom))
-    active_player = player1
-
-    def next_player(player):
-        if player == player1:
-            return player2
-        return player1
-        
-    def update():
+    players_list = []
+    players_list.append(Player((SCREENRECT.centerx - 300, SCREENRECT.bottom)))
+    players_list.append(Player((SCREENRECT.centerx + 300, SCREENRECT.bottom)))
+    players = CircularListEnumerator(players_list)
+    current_player = players.next()
+    current_player.active = True
+    
+    def process_event(event):
+        nonlocal players
+        nonlocal current_player
+        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+            game_ended = True
+        if event.type == END_TURN_EVENT:
+            current_player.active = False
+            current_player = players.next()
+            pygame.time.set_timer(NEXT_TURN_EVENT, 2000)
+        if event.type == NEXT_TURN_EVENT:
+            pygame.time.set_timer(NEXT_TURN_EVENT, 0)
+            current_player.active = True
+    
+    while True:
         # Get input
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                return
-        keystate = pygame.key.get_pressed()
+            process_event(event)
+            
+        if game_ended:
+            return
         
         # Erase the old sprites
         all.clear(screen, background)
@@ -147,18 +174,6 @@ def main():
         
         # Cap the framerate
         clock.tick(60)
-    
-    def move_to_next_player():
-        nonlocal active_player
-        for i in range(120):
-            update()
-        active_player = next_player(active_player)
-    
-    while 1:
-        update()
-        
-        if (active_player.step() == False):
-            move_to_next_player()
         
 
 #call the "main" function if running this script
