@@ -13,6 +13,18 @@ END_TURN_EVENT = pygame.USEREVENT
 NEXT_TURN_EVENT = pygame.USEREVENT + 1
 
 
+class Terrain:
+
+    def __init__(self, mask):
+        self.mask = mask
+
+    def get_height_at(self, x):
+        y = 0
+        while self.mask.get_at((x, y)) == 0:
+            y += 1
+        return self.mask.get_size()[1] - y + 1
+
+
 class CircularListEnumerator:
 
     def __init__(self, list):
@@ -140,10 +152,14 @@ def main():
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
 
+    terrain_surface = pygame.image.load("terrain.png")
+    terrain_mask = pygame.mask.from_surface(terrain_surface)
+    terrain = Terrain(terrain_mask)
+
     clock = pygame.time.Clock()
 
-    players_list = [Player(pygame.math.Vector2(SCREEN_RECT.centerx - 300, SCREEN_RECT.bottom)),
-                    Player(pygame.math.Vector2(SCREEN_RECT.centerx + 300, SCREEN_RECT.bottom))]
+    players_list = [Player(pygame.math.Vector2(SCREEN_RECT.centerx - 300, SCREEN_RECT.bottom - terrain.get_height_at(SCREEN_RECT.centerx - 300))),
+                    Player(pygame.math.Vector2(SCREEN_RECT.centerx + 300, SCREEN_RECT.bottom - terrain.get_height_at(SCREEN_RECT.centerx + 300)))]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
