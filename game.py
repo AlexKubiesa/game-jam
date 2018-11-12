@@ -37,16 +37,20 @@ class CircularListEnumerator:
 class Player(pygame.sprite.Sprite):
     speed = 1
 
-    def __init__(self, position):
+    def __init__(self, position, terrain):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         size = 48, 48
         self.image = pygame.Surface(size)
         self.image.fill(white)
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.mask.fill()
 
         self.position = position
         self.__update_position()
+
+        self.terrain = terrain
 
         self.crosshair = Crosshair(self)
         self.facing = 1
@@ -74,7 +78,17 @@ class Player(pygame.sprite.Sprite):
     def __move(self, direction):
         if direction != 0:
             self.facing = direction
-            self.position.x += direction * self.speed
+            normal = get_collision_normal(self.terrain.mask, self.mask, self.position)
+            if normal.length() == 0:
+                # No collision
+                change = pygame.math.Vector2(0, 1)
+            else:
+                # Collision
+                angle = -90.0 * direction
+                tangent = normal.rotate(angle)
+                tangent.scale_to_length(self.speed)
+                change = tangent
+            self.position += change
             self.__update_position()
             self.crosshair.reset()
 
@@ -134,6 +148,13 @@ class Projectile(physics.Particle):
         self.rect.center = self.position
 
 
+def get_collision_normal(mask, othermask, offset):
+    x, y = (int(i) for i in offset)
+    f_x = mask.overlap_area(othermask, (x + 1, y)) - mask.overlap_area(othermask, (x - 1, y))
+    f_y = mask.overlap_area(othermask, (x, y + 1)) - mask.overlap_area(othermask, (x, y - 1))
+    return pygame.math.Vector2(f_x, f_y)
+
+
 def main():
     pygame.init()
 
@@ -157,7 +178,7 @@ def main():
     clock = pygame.time.Clock()
 
     player_xs = [SCREEN_RECT.centerx - 300, SCREEN_RECT.centerx + 300]
-    players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x))) for x in player_xs]
+    players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x)), terrain) for x in player_xs]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
