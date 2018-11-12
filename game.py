@@ -13,10 +13,13 @@ END_TURN_EVENT = pygame.USEREVENT
 NEXT_TURN_EVENT = pygame.USEREVENT + 1
 
 
-class Terrain:
+class Terrain(pygame.sprite.Sprite):
 
-    def __init__(self, mask):
-        self.mask = mask
+    def __init__(self, image):
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.image = image
+        self.rect = image.get_rect()
+        self.mask = pygame.mask.from_surface(image)
 
     def get_spawn_point(self, x):
         y = next(y for y in range(self.mask.get_size()[1]) if self.mask.get_at((x, y)) != 0)
@@ -78,7 +81,7 @@ class Player(pygame.sprite.Sprite):
     def __move(self, direction):
         if direction != 0:
             self.facing = direction
-            normal = get_collision_normal(self.terrain.mask, self.mask, self.position)
+            normal = get_collision_normal(self.terrain.mask, self.mask, self.center)
             if normal.length() == 0:
                 # No collision
                 change = pygame.math.Vector2(0, 1)
@@ -164,6 +167,7 @@ def main():
     all = pygame.sprite.RenderUpdates()
 
     # Assign default sprite groups to each sprite class
+    Terrain.groups = all
     Player.groups = all
     Crosshair.groups = all
     Projectile.groups = all
@@ -171,9 +175,8 @@ def main():
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
 
-    terrain_surface = pygame.image.load("terrain.png")
-    terrain_mask = pygame.mask.from_surface(terrain_surface)
-    terrain = Terrain(terrain_mask)
+    terrain_image = pygame.image.load("terrain.png")
+    terrain = Terrain(terrain_image)
 
     clock = pygame.time.Clock()
 
