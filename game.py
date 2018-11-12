@@ -7,7 +7,7 @@ import physics
 black = 0, 0, 0
 white = 255, 255, 255
 
-FRAME_RATE = 60
+FRAMERATE = 60
 SCREEN_RECT = Rect(0, 0, 800, 600)
 END_TURN_EVENT = pygame.USEREVENT
 NEXT_TURN_EVENT = pygame.USEREVENT + 1
@@ -219,7 +219,7 @@ def main():
         pygame.display.update(dirty)
 
         # Cap the framerate
-        clock.tick(FRAME_RATE)
+        clock.tick(FRAMERATE)
 
 
 # call the "main" function if running this script
