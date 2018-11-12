@@ -18,11 +18,9 @@ class Terrain:
     def __init__(self, mask):
         self.mask = mask
 
-    def get_height_at(self, x):
-        y = 0
-        while self.mask.get_at((x, y)) == 0:
-            y += 1
-        return self.mask.get_size()[1] - y + 1
+    def get_spawn_point(self, x):
+        y = next(y for y in range(self.mask.get_size()[1]) if self.mask.get_at((x, y)) != 0)
+        return x, y
 
 
 class CircularListEnumerator:
@@ -158,8 +156,8 @@ def main():
 
     clock = pygame.time.Clock()
 
-    players_list = [Player(pygame.math.Vector2(SCREEN_RECT.centerx - 300, SCREEN_RECT.bottom - terrain.get_height_at(SCREEN_RECT.centerx - 300))),
-                    Player(pygame.math.Vector2(SCREEN_RECT.centerx + 300, SCREEN_RECT.bottom - terrain.get_height_at(SCREEN_RECT.centerx + 300)))]
+    player_xs = [SCREEN_RECT.centerx - 300, SCREEN_RECT.centerx + 300]
+    players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x))) for x in player_xs]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
