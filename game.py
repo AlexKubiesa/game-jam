@@ -214,6 +214,45 @@ def get_collision_normal(mask, othermask, offset):
     f_y = mask.overlap_area(othermask, (x, y + 1)) - mask.overlap_area(othermask, (x, y - 1))
     return pygame.math.Vector2(f_x, f_y)
 
+class HealthBar(pygame.sprite.Sprite):
+    size_initial = (SCREEN_RECT[2]*.2,SCREEN_RECT[3]*.01)
+
+    def __init__(self, position, max_health):
+
+        print('test')
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.size= self.size_initial
+
+        self.image = pygame.Surface(self.size)
+        self.image.fill(white)
+
+        self.rect = self.image.get_rect()
+
+        self.max_health = max_health
+        self.health = max_health
+
+        if(position == 'left'):
+            self.position = pygame.math.Vector2(SCREEN_RECT[2] * .03 + self.size[0] * .5,
+                                                SCREEN_RECT[3] * .03 + self.size[1] * .5)
+        elif(position == 'right'):
+            self.position = pygame.math.Vector2(SCREEN_RECT[2] - SCREEN_RECT[2] * .03 - self.size[0] * .5,
+                                                SCREEN_RECT[3] * .03 + self.size[1] * .5)
+        else:
+            print('incorrect healthbar position')
+
+        self.rect.center = self.position
+
+    def __damage(self, damage_ammount):
+        self.__set_health(self.health - damage_ammount)
+
+    def __set_health(selfs, health):
+        self.size[0] = self.size_initial[0]*self.health/self.max_health
+        self.image = pygame.Surface(self.size)
+        self.image.fill(white)
+
+        self.rect = self.image.get_rect()
+
+
 
 def main():
     pygame.init()
@@ -245,6 +284,8 @@ def main():
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
+
+    HB1 = HealthBar('right',100)
 
     def process_event(event):
         nonlocal game_ended
