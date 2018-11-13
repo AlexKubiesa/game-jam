@@ -58,10 +58,8 @@ class Player(pygame.sprite.Sprite):
         self.terrain = terrain
 
         if(self.position[0] > SCREEN_RECT.centerx):
-            print('TRUE')
             self.facing = 1
         else:
-            print('FALSE')
             self.facing = 0
         self.active = False
         self.crosshair = Crosshair(self)
@@ -111,7 +109,7 @@ class Player(pygame.sprite.Sprite):
             self.crosshair.move_vert(direction)
 
     def __shoot(self):
-        Projectile(self.crosshair)
+        Projectile(self.crosshair, self)
 
 
 class Crosshair(pygame.sprite.Sprite):
@@ -147,9 +145,10 @@ class Projectile(physics.Particle):
     size = 8, 8
     speed = 10
 
-    def __init__(self, crosshair):
+    def __init__(self, crosshair, player):
         physics.Particle.__init__(self, crosshair.position, self.groups)
 
+        self.player = player
         self.image = pygame.Surface(self.size)
         self.rect = self.image.get_rect()
         self.velocity.from_polar((self.speed, crosshair.angle))
@@ -157,9 +156,14 @@ class Projectile(physics.Particle):
         self.image.fill(white)
         self.rect.center = crosshair.rect.center
 
+        self.mask = pygame.mask.from_surface(self.image)
+
     def update(self):
         physics.Particle.update(self)
         self.rect.center = self.position
+        if self.position[0] < 0 or self.position[0] > SCREEN_RECT[2] or self.position[1] < -SCREEN_RECT[3]:
+            self.kill()
+
 
 
 def get_collision_normal(mask, othermask, offset):
@@ -193,6 +197,8 @@ def main():
 
     player_xs = [SCREEN_RECT.centerx - 300, SCREEN_RECT.centerx + 300]
     players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x)), terrain) for x in player_xs]
+    for player in players_list:
+        player.players_list = players_list
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
