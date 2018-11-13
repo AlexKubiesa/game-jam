@@ -116,6 +116,10 @@ class Player(pygame.sprite.Sprite):
     def __shoot(self):
         Projectile(self.crosshair, self)
 
+    def change_health(self, delta_health):
+        self.health += delta_health
+        self.healthbar.change_health(delta_health)
+
 
 class Crosshair(pygame.sprite.Sprite):
     size = 8, 8
@@ -206,10 +210,7 @@ class HealthBar(pygame.sprite.Sprite):
 
         self.rect.midleft = self.position
 
-    def damage(self, damage_amount):
-        self.__set_health(-damage_amount)
-
-    def __set_health(self, health_change):
+    def change_health(self, health_change):
         self.health += health_change
         self.size[0] = self.size_initial[0]*self.health/self.max_health
         self.image = pygame.Surface(self.size)
@@ -285,8 +286,7 @@ def main():
 
         for player_hit, projectiles_hit in collision_list.items():
             for projectile_hit in projectiles_hit:
-                player_hit.health = player_hit.health - projectile_hit.damage
-                player_hit.healthbar.damage(projectile_hit.damage)
+                player_hit.change_health(- projectile_hit.damage)
                 projectile_hit.kill()
                 print(player_hit.health)
 
