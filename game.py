@@ -58,13 +58,17 @@ class Player(pygame.sprite.Sprite):
 
         self.terrain = terrain
 
-        if(self.position[0] > SCREEN_RECT.centerx):
+        if (self.position[0] > SCREEN_RECT.centerx):
+            self.which_player = 2
             self.facing = 1
+            self.healthbar = HealthBar('right', 100)
         else:
+            self.which_player = 1
             self.facing = 0
+            self.healthbar = HealthBar('left', 100)
+
         self.active = False
         self.crosshair = Crosshair(self)
-
 
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
@@ -175,13 +179,13 @@ def get_collision_normal(mask, othermask, offset):
     return pygame.math.Vector2(f_x, f_y)
 
 class HealthBar(pygame.sprite.Sprite):
-    size_initial = (SCREEN_RECT[2]*.2,SCREEN_RECT[3]*.01)
+    size_initial = [SCREEN_RECT[2]*.2,SCREEN_RECT[3]*.01]
 
     def __init__(self, position, max_health):
 
         print('test')
         pygame.sprite.Sprite.__init__(self, self.groups)
-        self.size= self.size_initial
+        self.size = self.size_initial
 
         self.image = pygame.Surface(self.size)
         self.image.fill(white)
@@ -192,26 +196,27 @@ class HealthBar(pygame.sprite.Sprite):
         self.health = max_health
 
         if(position == 'left'):
-            self.position = pygame.math.Vector2(SCREEN_RECT[2] * .03 + self.size[0] * .5,
+            self.position = pygame.math.Vector2(SCREEN_RECT[2] * .03,
                                                 SCREEN_RECT[3] * .03 + self.size[1] * .5)
         elif(position == 'right'):
-            self.position = pygame.math.Vector2(SCREEN_RECT[2] - SCREEN_RECT[2] * .03 - self.size[0] * .5,
+            self.position = pygame.math.Vector2(SCREEN_RECT[2] - SCREEN_RECT[2] * .03 - self.size[0],
                                                 SCREEN_RECT[3] * .03 + self.size[1] * .5)
         else:
             print('incorrect healthbar position')
 
-        self.rect.center = self.position
+        self.rect.midleft = self.position
 
-    def __damage(self, damage_ammount):
-        self.__set_health(self.health - damage_ammount)
+    def damage(self, damage_amount):
+        self.__set_health(-damage_amount)
 
-    def __set_health(selfs, health):
+    def __set_health(self, health_change):
+        self.health += health_change
         self.size[0] = self.size_initial[0]*self.health/self.max_health
         self.image = pygame.Surface(self.size)
         self.image.fill(white)
 
         self.rect = self.image.get_rect()
-
+        self.rect.midleft = self.position
 
 
 def main():
@@ -247,8 +252,6 @@ def main():
     current_player = players.next()
     current_player.active = True
 
-    HB1 = HealthBar('right',100)
-
     def process_event(event):
         nonlocal game_ended
         nonlocal players
@@ -283,6 +286,7 @@ def main():
         for player_hit, projectiles_hit in collision_list.items():
             for projectile_hit in projectiles_hit:
                 player_hit.health = player_hit.health - projectile_hit.damage
+                player_hit.healthbar.damage(projectile_hit.damage)
                 projectile_hit.kill()
                 print(player_hit.health)
 
