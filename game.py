@@ -41,6 +41,7 @@ class CircularListEnumerator:
 
 class Player(pygame.sprite.Sprite):
     speed = 1
+    health = 100
 
     def __init__(self, position, terrain):
         pygame.sprite.Sprite.__init__(self, self.groups)
@@ -144,6 +145,7 @@ class Crosshair(pygame.sprite.Sprite):
 class Projectile(physics.Particle):
     size = 8, 8
     speed = 10
+    damage = 10
 
     def __init__(self, crosshair, player):
         physics.Particle.__init__(self, crosshair.position, self.groups)
@@ -180,12 +182,14 @@ def main():
 
     # Initialise sprite groups
     all = pygame.sprite.RenderUpdates()
+    players_group = pygame.sprite.Group()
+    projectiles_group = pygame.sprite.Group()
 
     # Assign default sprite groups to each sprite class
     Terrain.groups = all
-    Player.groups = all
+    Player.groups = (all, players_group)
     Crosshair.groups = all
-    Projectile.groups = all
+    Projectile.groups = (all, projectiles_group)
 
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
@@ -230,6 +234,15 @@ def main():
 
         # Update all the sprites
         all.update()
+
+        # Calculate collisions
+        collision_list = pygame.sprite.groupcollide(players_group, projectiles_group, False, False)
+
+        for player_hit, projectiles_hit in collision_list.items():
+            for projectile_hit in projectiles_hit:
+                player_hit.health = player_hit.health - projectile_hit.damage
+                projectile_hit.kill()
+                print(player_hit.health)
 
         # Draw the new sprites
         dirty = all.draw(screen)
