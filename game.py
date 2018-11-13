@@ -19,14 +19,19 @@ class Terrain(pygame.sprite.Sprite):
 
     def __init__(self, image):
         pygame.sprite.Sprite.__init__(self, self.groups)
+
         self.image = image
         self.rect = image.get_rect()
         self.mask = pygame.mask.from_surface(image)
+
 
     def get_spawn_point(self, x):
         y = next(y for y in range(self.mask.get_size()[1]) if self.mask.get_at((x, y)) != 0)
         return x, y
 
+    def apply_explosion(self, location, size):
+        pygame.draw.circle(self.image, Color(0,0,0,0), (int(location[0]), int(location[1])), size)
+        self.mask = pygame.mask.from_surface(self.image)
 
 class CircularListEnumerator:
 
@@ -154,6 +159,7 @@ class Projectile(physics.Particle):
     size = 8, 8
     speed = 10
     damage = 10
+    explosion_size = 5
 
     def __init__(self, crosshair, player):
         physics.Particle.__init__(self, crosshair.position, self.groups)
@@ -167,6 +173,7 @@ class Projectile(physics.Particle):
         self.rect.center = crosshair.rect.center
 
         self.mask = pygame.mask.from_surface(self.image)
+        self.mask.fill()
 
     def update(self):
         physics.Particle.update(self)
@@ -187,7 +194,6 @@ class HealthBar(pygame.sprite.Sprite):
 
     def __init__(self, position, max_health):
 
-        print('test')
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.size = self.size_initial
 
@@ -212,6 +218,10 @@ class HealthBar(pygame.sprite.Sprite):
 
     def change_health(self, health_change):
         self.health += health_change
+        print(self.health)
+        print(self.max_health)
+        print(self.health/self.  max_health)
+        print(self.size_initial[0]*self.health/self.max_health)
         self.size[0] = self.size_initial[0]*self.health/self.max_health
         self.image = pygame.Surface(self.size)
         self.image.fill(white)
@@ -229,9 +239,10 @@ def main():
     all = pygame.sprite.RenderUpdates()
     players_group = pygame.sprite.Group()
     projectiles_group = pygame.sprite.Group()
+    terrain_group = pygame.sprite.Group()
 
     # Assign default sprite groups to each sprite class
-    Terrain.groups = all
+    Terrain.groups = (all, terrain_group)
     Player.groups = (all, players_group)
     Crosshair.groups = all
     Projectile.groups = (all, projectiles_group)
@@ -282,13 +293,20 @@ def main():
         all.update()
 
         # Calculate collisions
-        collision_list = pygame.sprite.groupcollide(players_group, projectiles_group, False, False)
+        tank_hit_collisions = pygame.sprite.groupcollide(players_group, projectiles_group, False, False)
 
-        for player_hit, projectiles_hit in collision_list.items():
+        for player_hit, projectiles_hit in tank_hit_collisions.items():
             for projectile_hit in projectiles_hit:
                 player_hit.change_health(- projectile_hit.damage)
                 projectile_hit.kill()
                 print(player_hit.health)
+
+        ground_hit_collision = pygame.sprite.groupcollide(terrain_group, projectiles_group, False, False,  pygame.sprite.collide_mask)
+
+        for terrain_hit, projectiles_hit in ground_hit_collision.items():
+            for projectile_hit in projectiles_hit:
+                terrain.apply_explosion(projectile_hit.position, projectile_hit.explosion_size)
+                projectile_hit.kill()
 
         # Draw the new sprites
         dirty = all.draw(screen)
