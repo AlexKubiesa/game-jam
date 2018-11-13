@@ -3,6 +3,8 @@ from pygame.locals import *
 
 import physics
 
+import random
+
 # Game constants
 black = 0, 0, 0
 white = 255, 255, 255
@@ -55,9 +57,15 @@ class Player(pygame.sprite.Sprite):
 
         self.terrain = terrain
 
-        self.crosshair = Crosshair(self)
-        self.facing = 1
+        if(self.position[0] > SCREEN_RECT.centerx):
+            print('TRUE')
+            self.facing = 1
+        else:
+            print('FALSE')
+            self.facing = 0
         self.active = False
+        self.crosshair = Crosshair(self)
+
 
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
@@ -67,8 +75,12 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         keystate = pygame.key.get_pressed()
-        self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
-        self.__aim(keystate[K_DOWN] - keystate[K_UP])
+        if(random.randint(0,1) == 0):
+            self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
+            self.__aim(keystate[K_UP] - keystate[K_DOWN])
+        else:
+            self.__aim(keystate[K_UP] - keystate[K_DOWN])
+            self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
         if keystate[K_SPACE] != 0:
             self.__shoot()
             self.__end_turn()
@@ -80,7 +92,6 @@ class Player(pygame.sprite.Sprite):
 
     def __move(self, direction):
         if direction != 0:
-            self.facing = direction
             normal = get_collision_normal(self.terrain.mask, self.mask, self.center)
             if normal.length() == 0:
                 # No collision
@@ -117,7 +128,7 @@ class Crosshair(pygame.sprite.Sprite):
 
         self.player = player
         self.position = pygame.math.Vector2()
-        self.__set_angle(0)
+        self.__set_angle(self.player.facing*180)
 
     def __set_angle(self, new_angle):
         self.angle = new_angle
@@ -126,10 +137,10 @@ class Crosshair(pygame.sprite.Sprite):
         self.rect.center = self.position
 
     def reset(self):
-        self.__set_angle(90 * (self.player.facing - 1))
+        self.__set_angle(self.angle)
 
     def move_vert(self, direction):
-        self.__set_angle(self.angle + direction * self.player.facing)
+        self.__set_angle(self.angle + direction * (self.player.facing - 0.5) * 2)
 
 
 class Projectile(physics.Particle):
