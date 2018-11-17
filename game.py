@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+from pygame.math import Vector2
 
 import physics
 
@@ -8,6 +9,8 @@ import random
 # Game constants
 black = 0, 0, 0
 white = 255, 255, 255
+green = 0, 255, 0
+red = 255, 0, 0
 
 FRAMERATE = 60
 SCREEN_RECT = Rect(0, 0, 800, 600)
@@ -39,6 +42,30 @@ class CircularListEnumerator:
         return self.__list[self.__index]
 
 
+class HealthBar(pygame.sprite.Sprite):
+
+    def __init__(self, player):
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.player = player
+        self.background_image = pygame.Surface((60, 10))
+        self.background_image.fill(red)
+        self.health_image = pygame.Surface((30, 10))
+        self.health_image.fill(green)
+        self.__update_image()
+        self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
+
+    def __update_image(self):
+        self.image = self.background_image.copy()
+        self.image.blit(self.health_image, (0, 0))
+
+    def __get_position(self):
+        return self.player.rect
+
+    #def update(self):
+
+
+
 class Player(pygame.sprite.Sprite):
     speed = 1
     health = 100
@@ -64,6 +91,7 @@ class Player(pygame.sprite.Sprite):
             self.facing = 0
         self.active = False
         self.crosshair = Crosshair(self)
+        self.health_bar = HealthBar(self)
 
 
     def __update_position(self):
@@ -190,6 +218,7 @@ def main():
     Player.groups = (all, players_group)
     Crosshair.groups = all
     Projectile.groups = (all, projectiles_group)
+    HealthBar.groups = all
 
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
