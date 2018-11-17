@@ -144,11 +144,15 @@ class Crosshair(pygame.sprite.Sprite):
         self.elevation = 0
 
     def update(self):
-        self.position.from_polar((self.radius, -self.elevation))
-        if self.player.facing < 0:
-            self.position.reflect_ip(Vector2(1, 0))
+        self.position.from_polar((self.radius, self.get_angle()))
         self.position += self.player.center
         self.rect.center = self.position
+
+    def get_angle(self):
+        angle = -self.elevation
+        if self.player.facing < 0:
+            angle = 180 - angle
+        return angle
 
 
 class Projectile(physics.Particle):
@@ -163,7 +167,7 @@ class Projectile(physics.Particle):
         self.player = player
         self.image = pygame.Surface(self.size)
         self.rect = self.image.get_rect()
-        self.velocity.from_polar((self.speed, crosshair.angle))
+        self.velocity.from_polar((self.speed, crosshair.get_angle()))
 
         self.image.fill(white)
         self.rect.center = crosshair.rect.center
