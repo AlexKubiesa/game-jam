@@ -48,19 +48,26 @@ class HealthBar(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.player = player
+        self.__fill_fraction = 1.0
         self.background_image = pygame.Surface((60, 10))
+        self.health_image = self.background_image.copy()
         self.background_image.fill(red)
-        self.health_image = pygame.Surface((30, 10))
         self.health_image.fill(green)
         self.__update_image()
         self.__update_position()
 
     def __update_image(self):
         self.image = self.background_image.copy()
-        self.image.blit(self.health_image, (0, 0))
+        area = self.background_image.get_rect()
+        area.width *= self.__fill_fraction
+        self.image.blit(self.health_image, (0, 0), area)
 
     def __update_position(self):
         self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
+
+    def set_fill_fraction(self, fill_fraction):
+        self.__fill_fraction = fill_fraction
+        self.__update_image()
 
     def update(self):
         self.__update_position()
@@ -69,10 +76,11 @@ class HealthBar(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     speed = 1
-    health = 100
 
     def __init__(self, position, terrain):
         pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.__health = 100
 
         size = 48, 48
         self.image = pygame.Surface(size)
@@ -94,6 +102,9 @@ class Player(pygame.sprite.Sprite):
         self.crosshair = Crosshair(self)
         self.health_bar = HealthBar(self)
 
+    def take_damage(self, amount):
+        self.__health -= amount
+        self.health_bar.set_fill_fraction(self.__health / 100.0)
 
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
@@ -231,8 +242,6 @@ def main():
 
     player_xs = [SCREEN_RECT.centerx - 300, SCREEN_RECT.centerx + 300]
     players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x)), terrain) for x in player_xs]
-    for player in players_list:
-        player.players_list = players_list
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True
@@ -270,9 +279,8 @@ def main():
 
         for player_hit, projectiles_hit in collision_list.items():
             for projectile_hit in projectiles_hit:
-                player_hit.health = player_hit.health - projectile_hit.damage
+                player_hit.take_damage(projectile_hit.damage)
                 projectile_hit.kill()
-                print(player_hit.health)
 
         # Draw the new sprites
         dirty = all.draw(screen)
