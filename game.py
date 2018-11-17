@@ -230,6 +230,7 @@ def main():
     player_2.healthbar = HealthBar(healthbar_rect_2, 100)
     inventory_menu_rect_2 = inventory_menu_rect_1.copy()
     inventory_menu_rect_2.topright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .05)
+    player_2.inventory_menu = InventoryMenu(inventory_menu_rect_2)
 
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
