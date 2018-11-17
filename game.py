@@ -1,18 +1,13 @@
 import pygame
 from pygame.locals import *
-from controls import Button, get_controls, get_button_pressed
 from pygame.math import Vector2
+from controls import Button, get_controls, get_button_pressed
+from colors import *
+from gui import HealthBar
 
 import physics
 
-import random
-
 # Game constants
-black = 0, 0, 0
-white = 255, 255, 255
-green = 0, 255, 0
-red = 255, 0, 0
-
 FRAMERATE = 60
 SCREEN_RECT = Rect(0, 0, 800, 600)
 END_TURN_EVENT = pygame.USEREVENT
@@ -181,33 +176,6 @@ def get_collision_normal(mask, othermask, offset):
     f_x = mask.overlap_area(othermask, (x + 1, y)) - mask.overlap_area(othermask, (x - 1, y))
     f_y = mask.overlap_area(othermask, (x, y + 1)) - mask.overlap_area(othermask, (x, y - 1))
     return pygame.math.Vector2(f_x, f_y)
-
-
-class HealthBar(pygame.sprite.Sprite):
-
-    def __init__(self, rect, max_health):
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.rect = rect
-
-        self.back_image = pygame.Surface(rect.size)
-        self.front_image = self.back_image.copy()
-        self.back_image.fill(red)
-        self.front_image.fill(white)
-
-        self.max_health = max_health
-        self.health = max_health
-
-        self.__update_image()
-
-    def __update_image(self):
-        self.image = self.back_image.copy()
-        area = self.back_image.get_rect()
-        area.width *= self.health / self.max_health
-        self.image.blit(self.front_image, (0, 0), area)
-
-    def change_health(self, health_change):
-        self.health += health_change
-        self.__update_image()
 
 
 def main():
