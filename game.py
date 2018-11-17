@@ -191,36 +191,6 @@ def get_collision_normal(mask, othermask, offset):
     return pygame.math.Vector2(f_x, f_y)
 
 
-# class HealthBar(pygame.sprite.Sprite):
-#
-#     def __init__(self, player):
-#         pygame.sprite.Sprite.__init__(self, self.groups)
-#
-#         self.player = player
-#         self.__fill_fraction = 1.0
-#         self.background_image = pygame.Surface((60, 10))
-#         self.health_image = self.background_image.copy()
-#         self.background_image.fill(red)
-#         self.health_image.fill(green)
-#         self.__update_image()
-#         self.__update_position()
-#
-#     def __update_image(self):
-#         self.image = self.background_image.copy()
-#         area = self.background_image.get_rect()
-#         area.width *= self.__fill_fraction
-#         self.image.blit(self.health_image, (0, 0), area)
-#
-#     def __update_position(self):
-#         self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
-#
-#     def set_fill_fraction(self, fill_fraction):
-#         self.__fill_fraction = fill_fraction
-#         self.__update_image()
-#
-#     def update(self):
-#         self.__update_position()
-
 class HealthBar(pygame.sprite.Sprite):
     size_initial = [SCREEN_RECT.width*.2, SCREEN_RECT.height*.01]
 
