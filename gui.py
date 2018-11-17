@@ -27,3 +27,26 @@ class HealthBar(pygame.sprite.Sprite):
     def change_health(self, health_change):
         self.health += health_change
         self.__update_image()
+
+
+class InventoryMenu(pygame.sprite.Sprite):
+    def __init__(self, rect):
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.rect = rect
+
+        self.image = pygame.Surface(rect.size)
+        self.image.fill(colors.grey)
+
+        self.image.set_alpha(0)
+        self.__visible = False
+
+    def show(self):
+        self.image.set_alpha(255)
+        self.__visible = True
+
+    def hide(self):
+        self.image.set_alpha(0)
+        self.__visible = False
+
+    def is_visible(self):
+        return self.__visible
