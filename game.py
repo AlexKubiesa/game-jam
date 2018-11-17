@@ -53,16 +53,17 @@ class HealthBar(pygame.sprite.Sprite):
         self.health_image = pygame.Surface((30, 10))
         self.health_image.fill(green)
         self.__update_image()
-        self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
+        self.__update_position()
 
     def __update_image(self):
         self.image = self.background_image.copy()
         self.image.blit(self.health_image, (0, 0))
 
-    def __get_position(self):
-        return self.player.rect
+    def __update_position(self):
+        self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
 
-    #def update(self):
+    def update(self):
+        self.__update_position()
 
 
 
