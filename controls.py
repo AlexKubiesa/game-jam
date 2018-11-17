@@ -9,6 +9,7 @@ class Button(Enum):
     LEFT = auto()
     RIGHT = auto()
     SHOOT = auto()
+    INVENTORY = auto()
 
 
 __player_controls = {
@@ -17,7 +18,8 @@ __player_controls = {
         Button.DOWN: K_s,
         Button.LEFT: K_a,
         Button.RIGHT: K_d,
-        Button.SHOOT: K_SPACE
+        Button.SHOOT: K_SPACE,
+        Button.INVENTORY: K_e
     },
 
     2: {
@@ -25,7 +27,8 @@ __player_controls = {
         Button.DOWN: K_DOWN,
         Button.LEFT: K_LEFT,
         Button.RIGHT: K_RIGHT,
-        Button.SHOOT: K_KP0
+        Button.SHOOT: K_KP0,
+        Button.INVENTORY: K_KP1
     }
 }
 
