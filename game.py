@@ -212,7 +212,7 @@ class HealthBar(pygame.sprite.Sprite):
             self.position = pygame.math.Vector2(SCREEN_RECT[2] - SCREEN_RECT[2] * .03 - self.size[0],
                                                 SCREEN_RECT[3] * .03 + self.size[1] * .5)
         else:
-            print('incorrect healthbar position')
+            raise ValueError('incorrect healthbar position')
 
         self.rect.midleft = self.position
 
