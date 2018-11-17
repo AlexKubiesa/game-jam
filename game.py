@@ -69,12 +69,11 @@ class Player(pygame.sprite.Sprite):
         self.__update_position()
 
         self.terrain = terrain
+        self.facing = 1
 
         if id == 1:
-            self.facing = 1
             self.healthbar = HealthBar('left', 100)
         else:
-            self.facing = -1
             self.healthbar = HealthBar('right', 100)
 
         self.active = False
@@ -253,7 +252,9 @@ def main():
     clock = pygame.time.Clock()
 
     player_1 = Player(1, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx - 300)), terrain)
+    player_1.facing = 1
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
+    player_2.facing = -1
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
