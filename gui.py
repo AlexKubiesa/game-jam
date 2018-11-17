@@ -40,21 +40,15 @@ class InventoryMenu(pygame.sprite.Sprite):
         self.image.set_alpha(0)
         self.__visible = False
 
-    def show(self):
-        self.image.set_alpha(255)
-        self.__visible = True
-
-    def hide(self):
-        self.image.set_alpha(0)
-        self.__visible = False
-
-    def is_visible(self):
+    def get_visible(self):
         return self.__visible
 
     def set_visible(self, value):
         if value == self.__visible:
             return
         if value:
-            self.show()
+            self.image.set_alpha(255)
+            self.__visible = True
         else:
-            self.hide()
+            self.image.set_alpha(0)
+            self.__visible = False
