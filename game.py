@@ -70,11 +70,11 @@ class Player(pygame.sprite.Sprite):
 
         self.terrain = terrain
 
-        if self.position[0] > SCREEN_RECT.centerx:
+        if id == 1:
             self.facing = 1
             self.healthbar = HealthBar('right', 100)
         else:
-            self.facing = 0
+            self.facing = -1
             self.healthbar = HealthBar('left', 100)
 
         self.active = False
@@ -88,12 +88,8 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         button_states = get_button_pressed(self.__controls)
-        if random.randint(0, 1) == 0:
-            self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
-            self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
-        else:
-            self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
-            self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
+        self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
+        self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
         if button_states[Button.SHOOT] != 0:
             self.__shoot()
             self.__end_turn()
@@ -105,6 +101,7 @@ class Player(pygame.sprite.Sprite):
 
     def __move(self, direction):
         if direction != 0:
+            self.facing = direction
             normal = get_collision_normal(self.terrain.mask, self.mask, self.center)
             if normal.length() == 0:
                 # No collision
@@ -117,11 +114,10 @@ class Player(pygame.sprite.Sprite):
                 change = tangent
             self.position += change
             self.__update_position()
-            self.crosshair.reset()
 
     def __aim(self, direction):
         if direction != 0:
-            self.crosshair.move_vert(direction)
+            self.crosshair.elevation += direction
 
     def __shoot(self):
         Projectile(self.crosshair, self)
@@ -145,19 +141,14 @@ class Crosshair(pygame.sprite.Sprite):
 
         self.player = player
         self.position = pygame.math.Vector2()
-        self.__set_angle(self.player.facing*180)
+        self.elevation = 0
 
-    def __set_angle(self, new_angle):
-        self.angle = new_angle
-        self.position.from_polar((self.radius, self.angle))
+    def update(self):
+        self.position.from_polar((self.radius, -self.elevation))
+        if self.player.facing < 0:
+            self.position.reflect_ip(Vector2(1, 0))
         self.position += self.player.center
         self.rect.center = self.position
-
-    def reset(self):
-        self.__set_angle(self.angle)
-
-    def move_vert(self, direction):
-        self.__set_angle(self.angle + direction * (self.player.facing - 0.5) * 2)
 
 
 class Projectile(physics.Particle):
