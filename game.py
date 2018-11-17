@@ -27,7 +27,6 @@ class Terrain(pygame.sprite.Sprite):
         self.rect = image.get_rect()
         self.mask = pygame.mask.from_surface(image)
 
-
     def get_spawn_point(self, x):
         y = next(y for y in range(self.mask.get_size()[1]) if self.mask.get_at((x, y)) != 0)
         return x, y
@@ -35,6 +34,7 @@ class Terrain(pygame.sprite.Sprite):
     def apply_explosion(self, location, size):
         pygame.draw.circle(self.image, Color(0,0,0,0), (int(location[0]), int(location[1])), size)
         self.mask = pygame.mask.from_surface(self.image)
+
 
 class CircularListEnumerator:
 
@@ -76,7 +76,6 @@ class HealthBar(pygame.sprite.Sprite):
 
     def update(self):
         self.__update_position()
-
 
 
 class Player(pygame.sprite.Sprite):
@@ -123,7 +122,7 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         keystate = pygame.key.get_pressed()
-        if(random.randint(0,1) == 0):
+        if random.randint(0, 1) == 0:
             self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
             self.__aim(keystate[K_UP] - keystate[K_DOWN])
         else:
@@ -222,12 +221,12 @@ class Projectile(physics.Particle):
             self.kill()
 
 
-
 def get_collision_normal(mask, othermask, offset):
     x, y = (int(i) for i in offset)
     f_x = mask.overlap_area(othermask, (x + 1, y)) - mask.overlap_area(othermask, (x - 1, y))
     f_y = mask.overlap_area(othermask, (x, y + 1)) - mask.overlap_area(othermask, (x, y - 1))
     return pygame.math.Vector2(f_x, f_y)
+
 
 class HealthBar(pygame.sprite.Sprite):
     size_initial = [SCREEN_RECT[2]*.2,SCREEN_RECT[3]*.01]
