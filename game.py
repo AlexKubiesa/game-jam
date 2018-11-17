@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+from controls import Button, get_controls, get_button_pressed
 from pygame.math import Vector2
 
 import physics
@@ -50,10 +51,12 @@ class CircularListEnumerator:
 class Player(pygame.sprite.Sprite):
     speed = 1
 
-    def __init__(self, position, terrain):
+    def __init__(self, id, position, terrain):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
+        self.__id = id
         self.__health = 100
+        self.__controls = get_controls(id)
 
         size = 48, 48
         self.image = pygame.Surface(size)
@@ -67,7 +70,7 @@ class Player(pygame.sprite.Sprite):
 
         self.terrain = terrain
 
-        if (self.position[0] > SCREEN_RECT.centerx):
+        if self.position[0] > SCREEN_RECT.centerx:
             self.facing = 1
             self.healthbar = HealthBar('right', 100)
         else:
@@ -84,14 +87,14 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         if not self.active:
             return
-        keystate = pygame.key.get_pressed()
+        button_states = get_button_pressed(self.__controls)
         if random.randint(0, 1) == 0:
-            self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
-            self.__aim(keystate[K_UP] - keystate[K_DOWN])
+            self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
+            self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
         else:
-            self.__aim(keystate[K_UP] - keystate[K_DOWN])
-            self.__move(keystate[K_RIGHT] - keystate[K_LEFT])
-        if keystate[K_SPACE] != 0:
+            self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
+            self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
+        if button_states[Button.SHOOT] != 0:
             self.__shoot()
             self.__end_turn()
 
@@ -254,8 +257,9 @@ def main():
 
     clock = pygame.time.Clock()
 
-    player_xs = [SCREEN_RECT.centerx - 300, SCREEN_RECT.centerx + 300]
-    players_list = [Player(pygame.math.Vector2(terrain.get_spawn_point(x)), terrain) for x in player_xs]
+    player_1 = Player(1, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx - 300)), terrain)
+    player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
+    players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
     current_player.active = True

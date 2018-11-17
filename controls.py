@@ -1,5 +1,6 @@
 from enum import Enum, auto
 from pygame.locals import *
+import pygame.key
 
 
 class Button(Enum):
@@ -29,5 +30,10 @@ __player_controls = {
 }
 
 
-def get_controls(player_index):
-    return __player_controls[player_index]
+def get_controls(player_id):
+    return __player_controls[player_id]
+
+
+def get_button_pressed(controls):
+    key_states = pygame.key.get_pressed()
+    return {button: key_states[controls[button]] for button in Button}
