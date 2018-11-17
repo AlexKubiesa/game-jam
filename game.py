@@ -71,11 +71,6 @@ class Player(pygame.sprite.Sprite):
         self.terrain = terrain
         self.facing = 1
 
-        if id == 1:
-            self.healthbar = HealthBar('left', 100)
-        else:
-            self.healthbar = HealthBar('right', 100)
-
         self.active = False
         self.crosshair = Crosshair(self)
 
@@ -189,40 +184,30 @@ def get_collision_normal(mask, othermask, offset):
 
 
 class HealthBar(pygame.sprite.Sprite):
-    size_initial = [SCREEN_RECT.width*.2, SCREEN_RECT.height*.01]
 
-    def __init__(self, position, max_health):
-
+    def __init__(self, rect, max_health):
         pygame.sprite.Sprite.__init__(self, self.groups)
-        self.size = self.size_initial
+        self.rect = rect
 
-        self.image = pygame.Surface(self.size)
-        self.image.fill(white)
-
-        self.rect = self.image.get_rect()
+        self.back_image = pygame.Surface(rect.size)
+        self.front_image = self.back_image.copy()
+        self.back_image.fill(red)
+        self.front_image.fill(white)
 
         self.max_health = max_health
         self.health = max_health
 
-        if(position == 'left'):
-            self.position = pygame.math.Vector2(SCREEN_RECT[2] * .03,
-                                                SCREEN_RECT[3] * .03 + self.size[1] * .5)
-        elif(position == 'right'):
-            self.position = pygame.math.Vector2(SCREEN_RECT[2] - SCREEN_RECT[2] * .03 - self.size[0],
-                                                SCREEN_RECT[3] * .03 + self.size[1] * .5)
-        else:
-            raise ValueError('incorrect healthbar position')
+        self.__update_image()
 
-        self.rect.midleft = self.position
+    def __update_image(self):
+        self.image = self.back_image.copy()
+        area = self.back_image.get_rect()
+        area.width *= self.health / self.max_health
+        self.image.blit(self.front_image, (0, 0), area)
 
     def change_health(self, health_change):
         self.health += health_change
-        self.size[0] = self.size_initial[0]*self.health/self.max_health
-        self.image = pygame.Surface(self.size)
-        self.image.fill(white)
-
-        self.rect = self.image.get_rect()
-        self.rect.midleft = self.position
+        self.__update_image()
 
 
 def main():
@@ -253,8 +238,15 @@ def main():
 
     player_1 = Player(1, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx - 300)), terrain)
     player_1.facing = 1
+    healthbar_rect_1 = pygame.rect.Rect(
+            SCREEN_RECT.width * .03, SCREEN_RECT.height * .03, SCREEN_RECT.width*.2, SCREEN_RECT.height * .01
+    )
+    player_1.healthbar = HealthBar(healthbar_rect_1, 100)
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
     player_2.facing = -1
+    healthbar_rect_2 = healthbar_rect_1.copy()
+    healthbar_rect_2.midright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .03)
+    player_2.healthbar = HealthBar(healthbar_rect_2, 100)
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
