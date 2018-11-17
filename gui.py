@@ -34,11 +34,14 @@ class InventoryMenu(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.rect = rect
 
-        self.image = pygame.Surface(rect.size)
-        self.image.fill(colors.grey)
+        self.__back_image = pygame.Surface(rect.size)
+        self.__back_image.fill(colors.grey)
 
+        self.image = self.__back_image.copy()
         self.image.set_alpha(0)
         self.__visible = False
+
+        self.__items = []
 
     def get_visible(self):
         return self.__visible
@@ -52,3 +55,11 @@ class InventoryMenu(pygame.sprite.Sprite):
         else:
             self.image.set_alpha(0)
             self.__visible = False
+
+    def set_items(self, value):
+        self.__items = value
+        self.image = self.__back_image.copy()
+        for item in self.__items:
+            self.image.blit(item.icon, (5, 5))
+        if not self.__visible:
+            self.image.set_alpha(0)
