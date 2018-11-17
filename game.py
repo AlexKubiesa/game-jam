@@ -72,10 +72,10 @@ class Player(pygame.sprite.Sprite):
 
         if id == 1:
             self.facing = 1
-            self.healthbar = HealthBar('right', 100)
+            self.healthbar = HealthBar('left', 100)
         else:
             self.facing = -1
-            self.healthbar = HealthBar('left', 100)
+            self.healthbar = HealthBar('right', 100)
 
         self.active = False
         self.crosshair = Crosshair(self)
