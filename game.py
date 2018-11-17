@@ -3,7 +3,7 @@ from pygame.locals import *
 from pygame.math import Vector2
 from controls import Button, get_controls, get_button_pressed
 from colors import *
-from gui import HealthBar
+from gui import HealthBar, InventoryMenu
 
 import physics
 
@@ -69,6 +69,8 @@ class Player(pygame.sprite.Sprite):
         self.active = False
         self.crosshair = Crosshair(self)
 
+        self.__choosing_weapon = False
+
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
         self.rect.midbottom = self.position
@@ -77,6 +79,11 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         button_states = get_button_pressed(self.__controls)
+        if button_states[Button.INVENTORY]:
+            self.__choosing_weapon = not self.__choosing_weapon
+            self.inventory_menu.set_visible(self.__choosing_weapon)
+        if self.__choosing_weapon:
+            return
         self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
         self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
         if button_states[Button.SHOOT] != 0:
@@ -195,6 +202,7 @@ def main():
     Crosshair.groups = all
     Projectile.groups = (all, projectiles_group)
     HealthBar.groups = all
+    InventoryMenu.groups = all
 
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
@@ -207,14 +215,22 @@ def main():
     player_1 = Player(1, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx - 300)), terrain)
     player_1.facing = 1
     healthbar_rect_1 = pygame.rect.Rect(
-            SCREEN_RECT.width * .03, SCREEN_RECT.height * .03, SCREEN_RECT.width*.2, SCREEN_RECT.height * .01
+        SCREEN_RECT.width * .03, SCREEN_RECT.height * .03, SCREEN_RECT.width * .2, SCREEN_RECT.height * .01
     )
     player_1.healthbar = HealthBar(healthbar_rect_1, 100)
+    inventory_menu_rect_1 = pygame.rect.Rect(
+        SCREEN_RECT.width * .03, SCREEN_RECT.height * .05, SCREEN_RECT.width * .3, SCREEN_RECT.height * .8
+    )
+    player_1.inventory_menu = InventoryMenu(inventory_menu_rect_1)
+
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
     player_2.facing = -1
     healthbar_rect_2 = healthbar_rect_1.copy()
     healthbar_rect_2.midright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .03)
     player_2.healthbar = HealthBar(healthbar_rect_2, 100)
+    inventory_menu_rect_2 = inventory_menu_rect_1.copy()
+    inventory_menu_rect_2.topright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .05)
+
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
