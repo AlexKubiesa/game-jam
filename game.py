@@ -47,37 +47,6 @@ class CircularListEnumerator:
         return self.__list[self.__index]
 
 
-class HealthBar(pygame.sprite.Sprite):
-
-    def __init__(self, player):
-        pygame.sprite.Sprite.__init__(self, self.groups)
-
-        self.player = player
-        self.__fill_fraction = 1.0
-        self.background_image = pygame.Surface((60, 10))
-        self.health_image = self.background_image.copy()
-        self.background_image.fill(red)
-        self.health_image.fill(green)
-        self.__update_image()
-        self.__update_position()
-
-    def __update_image(self):
-        self.image = self.background_image.copy()
-        area = self.background_image.get_rect()
-        area.width *= self.__fill_fraction
-        self.image.blit(self.health_image, (0, 0), area)
-
-    def __update_position(self):
-        self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
-
-    def set_fill_fraction(self, fill_fraction):
-        self.__fill_fraction = fill_fraction
-        self.__update_image()
-
-    def update(self):
-        self.__update_position()
-
-
 class Player(pygame.sprite.Sprite):
     speed = 1
 
@@ -99,21 +68,15 @@ class Player(pygame.sprite.Sprite):
         self.terrain = terrain
 
         if (self.position[0] > SCREEN_RECT.centerx):
-            self.which_player = 2
             self.facing = 1
             self.healthbar = HealthBar('right', 100)
         else:
-            self.which_player = 1
             self.facing = 0
             self.healthbar = HealthBar('left', 100)
 
         self.active = False
         self.crosshair = Crosshair(self)
-        self.health_bar = HealthBar(self)
 
-    def take_damage(self, amount):
-        self.__health -= amount
-        self.health_bar.set_fill_fraction(self.__health / 100.0)
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
         self.rect.midbottom = self.position
@@ -161,7 +124,7 @@ class Player(pygame.sprite.Sprite):
         Projectile(self.crosshair, self)
 
     def change_health(self, delta_health):
-        self.health += delta_health
+        self.__health += delta_health
         self.healthbar.change_health(delta_health)
 
 
@@ -228,8 +191,38 @@ def get_collision_normal(mask, othermask, offset):
     return pygame.math.Vector2(f_x, f_y)
 
 
+# class HealthBar(pygame.sprite.Sprite):
+#
+#     def __init__(self, player):
+#         pygame.sprite.Sprite.__init__(self, self.groups)
+#
+#         self.player = player
+#         self.__fill_fraction = 1.0
+#         self.background_image = pygame.Surface((60, 10))
+#         self.health_image = self.background_image.copy()
+#         self.background_image.fill(red)
+#         self.health_image.fill(green)
+#         self.__update_image()
+#         self.__update_position()
+#
+#     def __update_image(self):
+#         self.image = self.background_image.copy()
+#         area = self.background_image.get_rect()
+#         area.width *= self.__fill_fraction
+#         self.image.blit(self.health_image, (0, 0), area)
+#
+#     def __update_position(self):
+#         self.rect = self.image.get_rect(center=self.player.rect.midtop + Vector2(0, -20))
+#
+#     def set_fill_fraction(self, fill_fraction):
+#         self.__fill_fraction = fill_fraction
+#         self.__update_image()
+#
+#     def update(self):
+#         self.__update_position()
+
 class HealthBar(pygame.sprite.Sprite):
-    size_initial = [SCREEN_RECT[2]*.2,SCREEN_RECT[3]*.01]
+    size_initial = [SCREEN_RECT.width*.2, SCREEN_RECT.height*.01]
 
     def __init__(self, position, max_health):
 
@@ -257,10 +250,6 @@ class HealthBar(pygame.sprite.Sprite):
 
     def change_health(self, health_change):
         self.health += health_change
-        print(self.health)
-        print(self.max_health)
-        print(self.health/self.  max_health)
-        print(self.size_initial[0]*self.health/self.max_health)
         self.size[0] = self.size_initial[0]*self.health/self.max_health
         self.image = pygame.Surface(self.size)
         self.image.fill(white)
@@ -334,7 +323,7 @@ def main():
 
         for player_hit, projectiles_hit in tank_hit_collisions.items():
             for projectile_hit in projectiles_hit:
-                player_hit.take_damage(projectile_hit.damage)
+                player_hit.change_health(-projectile_hit.damage)
                 projectile_hit.kill()
 
         ground_hit_collision = pygame.sprite.groupcollide(terrain_group, projectiles_group, False, False,  pygame.sprite.collide_mask)
