@@ -42,6 +42,7 @@ class InventoryMenu(pygame.sprite.Sprite):
 
         self.__padding = 10
         self.__items = []
+        self.__selected_item = None
 
     def get_visible(self):
         return self.__visible
@@ -59,7 +60,6 @@ class InventoryMenu(pygame.sprite.Sprite):
 
     def set_items(self, value):
         self.__items = []
-
         icon_topleft = (self.__padding, self.__padding)
         for item in value:
             icon_rect = item.icon.get_rect(topleft=icon_topleft)
@@ -69,6 +69,13 @@ class InventoryMenu(pygame.sprite.Sprite):
             self.__items.append(menu_item)
             menu_item.set_visible(self.__visible)
             icon_topleft = (icon_rect.right + self.__padding, icon_rect.top)
+        self.__select(self.__items[0])
+
+    def __select(self, menu_item):
+        if not (self.__selected_item is None):
+            self.__selected_item.set_selected(False)
+        self.__selected_item = menu_item
+        self.__selected_item.set_selected(True)
 
 
 class InventoryMenuItem(pygame.sprite.Sprite):
@@ -77,7 +84,9 @@ class InventoryMenuItem(pygame.sprite.Sprite):
     def __init__(self, menu, rect, weapon):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
-        self.__border_thickness = 4
+        self.__border_thickness = 2
+        self.__default_border_color = colors.black
+        self.__selected_border_color = colors.white
 
         self.__menu = menu
         self.rect = rect.copy()
@@ -85,12 +94,18 @@ class InventoryMenuItem(pygame.sprite.Sprite):
         self.rect.left += menu.rect.left
         self.weapon = weapon
 
+        self.__selected = False
+        self.__border_color = self.__default_border_color
+
         self.image = pygame.Surface([t + 2 * self.__border_thickness for t in weapon.icon.get_size()])
-        self.image.fill(colors.black)
-        self.image.blit(weapon.icon, (self.__border_thickness, self.__border_thickness))
+        self.__update_image()
 
         self.__visible = False
         self.image.set_alpha(0)
+
+    def __update_image(self):
+        self.image.fill(self.__border_color)
+        self.image.blit(self.weapon.icon, (self.__border_thickness, self.__border_thickness))
 
     def set_visible(self, value):
         if self.__visible == value:
@@ -100,3 +115,12 @@ class InventoryMenuItem(pygame.sprite.Sprite):
             self.image.set_alpha(255)
         else:
             self.image.set_alpha(0)
+
+    def set_selected(self, value):
+        self.__selected = value
+        if self.__selected:
+            self.__border_color = self.__selected_border_color
+        else:
+            self.__border_color = self.__default_border_color
+        self.__update_image()
+
