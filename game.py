@@ -223,7 +223,7 @@ def main():
     inventory_menu_rect_1 = pygame.rect.Rect(
         SCREEN_RECT.width * .03, SCREEN_RECT.height * .05, SCREEN_RECT.width * .3, SCREEN_RECT.height * .8
     )
-    player_1.inventory_menu = gui.InventoryMenu(inventory_menu_rect_1)
+    player_1.inventory_menu = gui.InventoryMenu(1, inventory_menu_rect_1)
     items = [weapon.bazooka, weapon.mortar, weapon.grenade]
     player_1.inventory_menu.set_items(items)
 
@@ -234,7 +234,7 @@ def main():
     player_2.healthbar = gui.HealthBar(healthbar_rect_2, 100)
     inventory_menu_rect_2 = inventory_menu_rect_1.copy()
     inventory_menu_rect_2.topright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .05)
-    player_2.inventory_menu = gui.InventoryMenu(inventory_menu_rect_2)
+    player_2.inventory_menu = gui.InventoryMenu(2, inventory_menu_rect_2)
     player_2.inventory_menu.set_items(items)
 
     players_list = [player_1, player_2]

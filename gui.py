@@ -1,5 +1,6 @@
 import pygame
 import colors
+import controls
 
 
 class HealthBar(pygame.sprite.Sprite):
@@ -31,8 +32,9 @@ class HealthBar(pygame.sprite.Sprite):
 class InventoryMenu(pygame.sprite.Sprite):
     depth = 1
 
-    def __init__(self, rect):
+    def __init__(self, player_id, rect):
         pygame.sprite.Sprite.__init__(self, self.groups)
+        self.__controls = controls.get_controls(player_id)
         self.rect = rect
 
         self.image = pygame.Surface(rect.size)
@@ -42,7 +44,7 @@ class InventoryMenu(pygame.sprite.Sprite):
 
         self.__padding = 10
         self.__items = []
-        self.__selected_item = None
+        self.__selected_index = None
 
     def get_visible(self):
         return self.__visible
@@ -69,13 +71,24 @@ class InventoryMenu(pygame.sprite.Sprite):
             self.__items.append(menu_item)
             menu_item.set_visible(self.__visible)
             icon_topleft = (icon_rect.right + self.__padding, icon_rect.top)
-        self.__select(self.__items[0])
+        self.__select_item(0)
 
-    def __select(self, menu_item):
-        if not (self.__selected_item is None):
-            self.__selected_item.set_selected(False)
-        self.__selected_item = menu_item
-        self.__selected_item.set_selected(True)
+    def __select_item(self, index):
+        if not (self.__selected_index is None):
+            self.__items[self.__selected_index].set_selected(False)
+        self.__selected_index = index
+        self.__items[self.__selected_index].set_selected(True)
+
+    def update(self):
+        if not self.__visible:
+            return
+        button_states = controls.get_button_pressed(self.__controls)
+        move_direction = button_states[controls.Button.RIGHT] - button_states[controls.Button.LEFT]
+        if move_direction == 0:
+            return
+        new_index = self.__selected_index + move_direction
+        if 0 <= new_index < len(self.__items):
+            self.__select_item(new_index)
 
 
 class InventoryMenuItem(pygame.sprite.Sprite):
