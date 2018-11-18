@@ -124,7 +124,7 @@ class Player(pygame.sprite.Sprite):
             self.crosshair.elevation += direction
 
     def __shoot(self):
-        Projectile(self.crosshair, self)
+        Projectile(self.crosshair)
 
     def change_health(self, delta_health):
         self.__health += delta_health
@@ -178,10 +178,9 @@ class Projectile(physics.Particle):
     damage = 10
     explosion_size = 5
 
-    def __init__(self, crosshair, player):
+    def __init__(self, crosshair):
         physics.Particle.__init__(self, crosshair.position, self.groups)
 
-        self.player = player
         self.image = pygame.Surface(self.size)
         self.rect = self.image.get_rect()
         self.velocity.from_polar((self.speed, crosshair.get_angle()))
