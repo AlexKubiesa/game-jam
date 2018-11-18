@@ -90,6 +90,11 @@ class InventoryMenu(pygame.sprite.Sprite):
         if 0 <= new_index < len(self.__items):
             self.__select_item(new_index)
 
+    def get_selected_item(self):
+        if self.__selected_index is None:
+            return None
+        return self.__items[self.__selected_index].weapon
+
 
 class InventoryMenuItem(pygame.sprite.Sprite):
     depth = 2

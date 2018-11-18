@@ -72,6 +72,10 @@ class Player(pygame.sprite.Sprite):
 
         self.__choosing_weapon = False
 
+        self.__items = []
+        self.__inventory_menu = None
+        self.__selected_item = None
+
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
         self.rect.midbottom = self.position
@@ -81,8 +85,10 @@ class Player(pygame.sprite.Sprite):
             return
         button_states = get_button_pressed(self.__controls)
         if button_states[Button.INVENTORY] != self.__choosing_weapon:
+            if not button_states[Button.INVENTORY]:
+                self.__selected_item = self.__inventory_menu.get_selected_item()
             self.__choosing_weapon = button_states[Button.INVENTORY]
-            self.inventory_menu.set_visible(button_states[Button.INVENTORY])
+            self.__inventory_menu.set_visible(button_states[Button.INVENTORY])
         if self.__choosing_weapon:
             return
         self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
@@ -122,6 +128,13 @@ class Player(pygame.sprite.Sprite):
     def change_health(self, delta_health):
         self.__health += delta_health
         self.healthbar.change_health(delta_health)
+
+    def set_items(self, value):
+        self.__items = value
+
+    def set_inventory_menu(self, value):
+        self.__inventory_menu = value
+        self.__inventory_menu.set_items(self.__items)
 
 
 class Crosshair(pygame.sprite.Sprite):
@@ -223,9 +236,9 @@ def main():
     inventory_menu_rect_1 = pygame.rect.Rect(
         SCREEN_RECT.width * .03, SCREEN_RECT.height * .05, SCREEN_RECT.width * .3, SCREEN_RECT.height * .8
     )
-    player_1.inventory_menu = gui.InventoryMenu(1, inventory_menu_rect_1)
     items = [weapon.bazooka, weapon.mortar, weapon.grenade]
-    player_1.inventory_menu.set_items(items)
+    player_1.set_items(items)
+    player_1.set_inventory_menu(gui.InventoryMenu(1, inventory_menu_rect_1))
 
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
     player_2.facing = -1
@@ -234,8 +247,8 @@ def main():
     player_2.healthbar = gui.HealthBar(healthbar_rect_2, 100)
     inventory_menu_rect_2 = inventory_menu_rect_1.copy()
     inventory_menu_rect_2.topright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .05)
-    player_2.inventory_menu = gui.InventoryMenu(2, inventory_menu_rect_2)
-    player_2.inventory_menu.set_items(items)
+    player_2.set_items(items)
+    player_2.set_inventory_menu(gui.InventoryMenu(2, inventory_menu_rect_2))
 
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
