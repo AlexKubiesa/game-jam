@@ -51,10 +51,11 @@ class InventoryMenu(pygame.sprite.Sprite):
             return
         if value:
             self.image.set_alpha(255)
-            self.__visible = True
         else:
             self.image.set_alpha(0)
-            self.__visible = False
+        self.__visible = value
+        for menu_item in self.__items:
+            menu_item.set_visible(value)
 
     def set_items(self, value):
         self.__items = []
@@ -64,10 +65,10 @@ class InventoryMenu(pygame.sprite.Sprite):
             icon_rect = item.icon.get_rect(topleft=icon_topleft)
             if icon_rect.right > self.rect.right - self.__padding:
                 icon_rect.topleft = (self.__padding, icon_rect.bottom + self.__padding)
-            self.__items.append(InventoryMenuItem(self, icon_rect, item))
+            menu_item = InventoryMenuItem(self, icon_rect, item)
+            self.__items.append(menu_item)
+            menu_item.set_visible(self.__visible)
             icon_topleft = (icon_rect.right + self.__padding, icon_rect.top)
-        if not self.__visible:
-            self.image.set_alpha(0)
 
 
 class InventoryMenuItem(pygame.sprite.Sprite):
@@ -87,3 +88,15 @@ class InventoryMenuItem(pygame.sprite.Sprite):
         self.image = pygame.Surface([t + 2 * self.__border_thickness for t in weapon.icon.get_size()])
         self.image.fill(colors.black)
         self.image.blit(weapon.icon, (self.__border_thickness, self.__border_thickness))
+
+        self.__visible = False
+        self.image.set_alpha(0)
+
+    def set_visible(self, value):
+        if self.__visible == value:
+            return
+        self.__visible = value
+        if self.__visible:
+            self.image.set_alpha(255)
+        else:
+            self.image.set_alpha(0)
