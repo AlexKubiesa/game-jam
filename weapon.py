@@ -1,9 +1,15 @@
 import pygame
-import random
+import colors
 
 
 class Weapon:
 
-    def __init__(self):
+    def __init__(self, color):
+        self.color = color
         self.icon = pygame.Surface((20, 20))
-        self.icon.fill((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+        self.icon.fill(color)
+
+
+bazooka = Weapon(colors.red)
+mortar = Weapon(colors.yellow)
+grenade = Weapon(colors.green)

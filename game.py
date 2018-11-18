@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from controls import Button, get_controls, get_button_pressed
 from colors import *
 from gui import HealthBar, InventoryMenu
-from weapon import Weapon
+import weapon
 
 import physics
 
@@ -223,7 +223,7 @@ def main():
         SCREEN_RECT.width * .03, SCREEN_RECT.height * .05, SCREEN_RECT.width * .3, SCREEN_RECT.height * .8
     )
     player_1.inventory_menu = InventoryMenu(inventory_menu_rect_1)
-    items = [Weapon(), Weapon(), Weapon()]
+    items = [weapon.bazooka, weapon.mortar, weapon.grenade]
     player_1.inventory_menu.set_items(items)
 
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
