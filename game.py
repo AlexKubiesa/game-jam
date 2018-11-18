@@ -87,6 +87,7 @@ class Player(pygame.sprite.Sprite):
         if button_states[Button.INVENTORY] != self.__choosing_weapon:
             if not button_states[Button.INVENTORY]:
                 self.__selected_item = self.__inventory_menu.get_selected_item()
+                self.crosshair.set_item(self.__selected_item)
             self.__choosing_weapon = button_states[Button.INVENTORY]
             self.__inventory_menu.set_visible(button_states[Button.INVENTORY])
         if self.__choosing_weapon:
@@ -138,13 +139,13 @@ class Player(pygame.sprite.Sprite):
 
 
 class Crosshair(pygame.sprite.Sprite):
-    size = 8, 8
     radius = 100
 
     def __init__(self, player):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
-        self.image = pygame.Surface(self.size)
+        self.__size = 8, 8
+        self.image = pygame.Surface(self.__size)
         self.image.fill(white)
 
         self.rect = self.image.get_rect()
@@ -152,6 +153,8 @@ class Crosshair(pygame.sprite.Sprite):
         self.player = player
         self.position = pygame.math.Vector2()
         self.elevation = 0
+
+        self.__item = None
 
     def update(self):
         self.position.from_polar((self.radius, self.get_angle()))
@@ -163,6 +166,10 @@ class Crosshair(pygame.sprite.Sprite):
         if self.player.facing < 0:
             angle = 180 - angle
         return angle
+
+    def set_item(self, value):
+        self.__item = value
+        self.image.fill(self.__item.color)
 
 
 class Projectile(physics.Particle):
