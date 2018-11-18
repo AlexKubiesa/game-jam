@@ -3,7 +3,8 @@ from pygame.locals import *
 from pygame.math import Vector2
 from controls import Button, get_controls, get_button_pressed
 from colors import *
-from gui import HealthBar
+import gui
+import weapon
 
 import physics
 
@@ -69,6 +70,12 @@ class Player(pygame.sprite.Sprite):
         self.active = False
         self.crosshair = Crosshair(self)
 
+        self.__choosing_weapon = False
+
+        self.__items = []
+        self.__inventory_menu = None
+        self.__selected_item = None
+
     def __update_position(self):
         self.center = pygame.math.Vector2(self.position.x, self.position.y - self.rect.height / 2)
         self.rect.midbottom = self.position
@@ -77,6 +84,13 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         button_states = get_button_pressed(self.__controls)
+        if button_states[Button.INVENTORY] != self.__choosing_weapon:
+            if not button_states[Button.INVENTORY]:
+                self.__set_selected_item(self.__inventory_menu.get_selected_item())
+            self.__choosing_weapon = button_states[Button.INVENTORY]
+            self.__inventory_menu.set_visible(button_states[Button.INVENTORY])
+        if self.__choosing_weapon:
+            return
         self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
         self.__aim(button_states[Button.UP] - button_states[Button.DOWN])
         if button_states[Button.SHOOT] != 0:
@@ -109,21 +123,42 @@ class Player(pygame.sprite.Sprite):
             self.crosshair.elevation += direction
 
     def __shoot(self):
-        Projectile(self.crosshair, self)
+        Projectile(self.crosshair, self.__selected_item)
 
     def change_health(self, delta_health):
         self.__health += delta_health
         self.healthbar.change_health(delta_health)
 
+    def set_items(self, value):
+        self.__items = value
+        self.__set_selected_index(0)
+        if not (self.__inventory_menu is None):
+            self.__inventory_menu.set_items(self.__items)
+
+    def set_inventory_menu(self, value):
+        self.__inventory_menu = value
+        self.__inventory_menu.set_items(self.__items)
+        self.__set_selected_index(0)
+
+    def __set_selected_index(self, value):
+        if len(self.__items) == 0:
+            self.__set_selected_item(None)
+        else:
+            self.__set_selected_item(self.__items[value])
+
+    def __set_selected_item(self, value):
+        self.__selected_item = value
+        self.crosshair.set_item(self.__selected_item)
+
 
 class Crosshair(pygame.sprite.Sprite):
-    size = 8, 8
     radius = 100
 
     def __init__(self, player):
         pygame.sprite.Sprite.__init__(self, self.groups)
 
-        self.image = pygame.Surface(self.size)
+        self.__size = 8, 8
+        self.image = pygame.Surface(self.__size)
         self.image.fill(white)
 
         self.rect = self.image.get_rect()
@@ -131,6 +166,8 @@ class Crosshair(pygame.sprite.Sprite):
         self.player = player
         self.position = pygame.math.Vector2()
         self.elevation = 0
+
+        self.__item = None
 
     def update(self):
         self.position.from_polar((self.radius, self.get_angle()))
@@ -143,6 +180,10 @@ class Crosshair(pygame.sprite.Sprite):
             angle = 180 - angle
         return angle
 
+    def set_item(self, value):
+        self.__item = value
+        self.image.fill(self.__item.color)
+
 
 class Projectile(physics.Particle):
     size = 8, 8
@@ -150,15 +191,14 @@ class Projectile(physics.Particle):
     damage = 10
     explosion_size = 5
 
-    def __init__(self, crosshair, player):
+    def __init__(self, crosshair, weapon):
         physics.Particle.__init__(self, crosshair.position, self.groups)
 
-        self.player = player
         self.image = pygame.Surface(self.size)
         self.rect = self.image.get_rect()
         self.velocity.from_polar((self.speed, crosshair.get_angle()))
 
-        self.image.fill(white)
+        self.image.fill(weapon.color)
         self.rect.center = crosshair.rect.center
 
         self.mask = pygame.mask.from_surface(self.image)
@@ -194,7 +234,9 @@ def main():
     Player.groups = (all, players_group)
     Crosshair.groups = all
     Projectile.groups = (all, projectiles_group)
-    HealthBar.groups = all
+    gui.HealthBar.groups = all
+    gui.InventoryMenu.groups = all
+    gui.InventoryMenuItem.groups = all
 
     screen = pygame.display.set_mode(SCREEN_RECT.size)
     background = screen.copy()
@@ -207,14 +249,26 @@ def main():
     player_1 = Player(1, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx - 300)), terrain)
     player_1.facing = 1
     healthbar_rect_1 = pygame.rect.Rect(
-            SCREEN_RECT.width * .03, SCREEN_RECT.height * .03, SCREEN_RECT.width*.2, SCREEN_RECT.height * .01
+        SCREEN_RECT.width * .03, SCREEN_RECT.height * .03, SCREEN_RECT.width * .2, SCREEN_RECT.height * .01
     )
-    player_1.healthbar = HealthBar(healthbar_rect_1, 100)
+    player_1.healthbar = gui.HealthBar(healthbar_rect_1, 100)
+    inventory_menu_rect_1 = pygame.rect.Rect(
+        SCREEN_RECT.width * .03, SCREEN_RECT.height * .05, SCREEN_RECT.width * .3, SCREEN_RECT.height * .8
+    )
+    items = [weapon.bazooka, weapon.mortar, weapon.grenade]
+    player_1.set_items(items)
+    player_1.set_inventory_menu(gui.InventoryMenu(1, inventory_menu_rect_1))
+
     player_2 = Player(2, Vector2(terrain.get_spawn_point(SCREEN_RECT.centerx + 300)), terrain)
     player_2.facing = -1
     healthbar_rect_2 = healthbar_rect_1.copy()
     healthbar_rect_2.midright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .03)
-    player_2.healthbar = HealthBar(healthbar_rect_2, 100)
+    player_2.healthbar = gui.HealthBar(healthbar_rect_2, 100)
+    inventory_menu_rect_2 = inventory_menu_rect_1.copy()
+    inventory_menu_rect_2.topright = (SCREEN_RECT.width * (1 - .03), SCREEN_RECT.height * .05)
+    player_2.set_items(items)
+    player_2.set_inventory_menu(gui.InventoryMenu(2, inventory_menu_rect_2))
+
     players_list = [player_1, player_2]
     players = CircularListEnumerator(players_list)
     current_player = players.next()
