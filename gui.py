@@ -3,7 +3,6 @@ import colors
 
 
 class HealthBar(pygame.sprite.Sprite):
-
     def __init__(self, rect, max_health):
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.rect = rect
@@ -30,14 +29,14 @@ class HealthBar(pygame.sprite.Sprite):
 
 
 class InventoryMenu(pygame.sprite.Sprite):
+    depth = 1
+
     def __init__(self, rect):
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.rect = rect
 
-        self.__back_image = pygame.Surface(rect.size)
-        self.__back_image.fill(colors.grey)
-
-        self.image = self.__back_image.copy()
+        self.image = pygame.Surface(rect.size)
+        self.image.fill(colors.grey)
         self.image.set_alpha(0)
         self.__visible = False
 
@@ -58,14 +57,28 @@ class InventoryMenu(pygame.sprite.Sprite):
             self.__visible = False
 
     def set_items(self, value):
-        self.__items = value
-        self.image = self.__back_image.copy()
+        self.__items = []
+
         icon_topleft = (self.__padding, self.__padding)
-        for item in self.__items:
+        for item in value:
             icon_rect = item.icon.get_rect(topleft=icon_topleft)
             if icon_rect.right > self.rect.right - self.__padding:
                 icon_rect.topleft = (self.__padding, icon_rect.bottom + self.__padding)
-            self.image.blit(item.icon, icon_rect.topleft)
+            self.__items.append(InventoryMenuItem(self, icon_rect, item))
             icon_topleft = (icon_rect.right + self.__padding, icon_rect.top)
         if not self.__visible:
             self.image.set_alpha(0)
+
+
+class InventoryMenuItem(pygame.sprite.Sprite):
+    depth = 2
+
+    def __init__(self, menu, rect, weapon):
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.__menu = menu
+        self.rect = rect.copy()
+        self.rect.top += menu.rect.top
+        self.rect.left += menu.rect.left
+        self.weapon = weapon
+        self.image = weapon.icon
