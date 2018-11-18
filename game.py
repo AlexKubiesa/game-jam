@@ -86,8 +86,7 @@ class Player(pygame.sprite.Sprite):
         button_states = get_button_pressed(self.__controls)
         if button_states[Button.INVENTORY] != self.__choosing_weapon:
             if not button_states[Button.INVENTORY]:
-                self.__selected_item = self.__inventory_menu.get_selected_item()
-                self.crosshair.set_item(self.__selected_item)
+                self.__set_selected_item(self.__inventory_menu.get_selected_item())
             self.__choosing_weapon = button_states[Button.INVENTORY]
             self.__inventory_menu.set_visible(button_states[Button.INVENTORY])
         if self.__choosing_weapon:
@@ -132,10 +131,24 @@ class Player(pygame.sprite.Sprite):
 
     def set_items(self, value):
         self.__items = value
+        self.__set_selected_index(0)
+        if not (self.__inventory_menu is None):
+            self.__inventory_menu.set_items(self.__items)
 
     def set_inventory_menu(self, value):
         self.__inventory_menu = value
         self.__inventory_menu.set_items(self.__items)
+        self.__set_selected_index(0)
+
+    def __set_selected_index(self, value):
+        if len(self.__items) == 0:
+            self.__set_selected_item(None)
+        else:
+            self.__set_selected_item(self.__items[value])
+
+    def __set_selected_item(self, value):
+        self.__selected_item = value
+        self.crosshair.set_item(self.__selected_item)
 
 
 class Crosshair(pygame.sprite.Sprite):
