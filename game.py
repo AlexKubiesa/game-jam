@@ -80,9 +80,9 @@ class Player(pygame.sprite.Sprite):
         if not self.active:
             return
         button_states = get_button_pressed(self.__controls)
-        if button_states[Button.INVENTORY]:
-            self.__choosing_weapon = not self.__choosing_weapon
-            self.inventory_menu.set_visible(self.__choosing_weapon)
+        if button_states[Button.INVENTORY] != self.__choosing_weapon:
+            self.__choosing_weapon = button_states[Button.INVENTORY]
+            self.inventory_menu.set_visible(button_states[Button.INVENTORY])
         if self.__choosing_weapon:
             return
         self.__move(button_states[Button.RIGHT] - button_states[Button.LEFT])
